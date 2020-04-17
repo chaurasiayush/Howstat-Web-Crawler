@@ -1,6 +1,6 @@
 import sqlite3
 import src.PlayerName as pname
-from src.Crawler import get_total_fs, get_bowling_data
+# from src.Crawler import get_total_fs, get_bowling_data
 import urllib.request, urllib.parse, urllib.error
 from bs4 import BeautifulSoup, SoupStrainer
 import ssl
@@ -49,6 +49,7 @@ def insert_match_html():
         except Exception as e:
             print('ERROR : SKIPPED FOR MATCH ID -', mid[0], e)
 
+
 def insertcountry():
     countries =  [ 'India', 'Pakistan', 'Afghanistan', 'Australia', 'New Zealand',  'Bangladesh', 'West Indies', 'England', 'Zimbabwe', 'South Africa', 'Sri Lanka']
     countries = sorted(countries)
@@ -61,238 +62,37 @@ def insertcountry():
     conn.commit()
 
 
-# def insertplayer(cntry):
-#     # fetching player data who are already in database
-#     dbplayers = list()
-#     curr.execute("select pid from player_data")
-#     for tmp in curr.fetchall():
-#         dbplayers.append(tmp[0])
-#
-#     # fetching country id from db
-#     curr.execute("select cid from country_data where cname == \""+cntry+"\"")
-#     cid = curr.fetchone()[0]
-#
-#     # retrieving data from internet
-#     pdata = pname.getPlayerData(cntry)
-#
-#     # print(dbplayers)
-#     for i in range(0, len(pdata[0])):
-#         if int(pdata[0][i]) in dbplayers:
-#             print("skipping record ("+pdata[0][i]+", '"+pdata[1][i]+"', "+pdata[2][i]+", "+str(cid)+")")
-#             continue
-#
-#         else:
-#             query = "Insert into player_data(pid, name, yob, cid) values("+pdata[0][i]+", '"+pdata[1][i]+"', "+pdata[2][i]+", "+str(cid)+")"
-#             conn.execute(query)
-#             print("inserted record ("+pdata[0][i]+", '"+pdata[1][i]+"', "+pdata[2][i]+", "+str(cid)+")")
-#
-#     conn.commit()
-#     # curr.execute("select * from PlayerData")
-#     # result = curr.fetchall()
-#     # # print(len(result))
-#     # for d in result:
-#     #     print(d)
+def insert_current_players(cntry):
+    # fetching player data who are already in database
+    dbplayers = list()
+    curr.execute("select pid from player_data")
+    for tmp in curr.fetchall():
+        dbplayers.append(tmp[0])
 
+    # fetching country id from db
+    curr.execute("select cid from country_data where cname == \""+cntry+"\"")
+    cid = curr.fetchone()[0]
 
-# def insert_player_batting_record(playerID, playername):
-#     ctx = ssl.create_default_context()
-#     ctx.check_hostname = False
-#     ctx.verify_mode = ssl.CERT_NONE
-#
-#     linkPref = "http://www.howstat.com/cricket/Statistics/Matches/MatchScorecard_ODI.asp?MatchCode="
-#     url = "http://www.howstat.com/cricket/Statistics/Players/PlayerProgressBat_ODI.asp?PlayerID="+playerID
-#
-#     html = urllib.request.urlopen(url, context=ctx).read()
-#     strainer = SoupStrainer('table', class_="TableLined") #"added"
-#     soup = BeautifulSoup(html, 'html.parser', parse_only=strainer)
-#     # Retrieve all of the anchor tags
-#     # tags = soup('a')
-#
-#
-#     table = soup.find('table', class_="TableLined")
-#
-#     rows = table.find_all('tr')
-#     matchID = list()
-#     vname = list()
-#     vid = list()
-#
-#     for tr in rows[3:-1]:
-#         columns = tr.find_all('td')
-#
-#         # fetching country id from db
-#         query = "select cid from country_data where cname == \"" + columns[2].text.strip() + "\""
-#         curr.execute(query)
-#         tvid = curr.fetchone()
-#
-#         # if player has gone for batting then only look for fours and sixes
-#         if tvid != None and (columns[5].text.strip()[0:1]).isnumeric():
-#             # print((columns[5].text))
-#
-#             # extracting relative link for match score card
-#             link = columns[1].find('a').get('href').strip()
-#
-#             # extracting and storing the match id's of the relevant matches'
-#             matchID.append(link[-4:])
-#
-#             # storing versus id in vid at same index
-#             vid.append(tvid[0])
-#             vname.append(columns[2].text.strip())
-#
-#     print("innings Played: ", len(matchID))
-#     innings = len(matchID)
-#
-#     if(innings == 0):
-#         print("no match played")
-#         return
-#
-#     # fetching country name for player from db
-#     query2 = "select c.cname from country_data as c join player_data as p on c.cid == p.cid WHERE p.pid == "+playerID
-#     curr.execute(query2)
-#     pcntry = curr.fetchone()[0]
-#
-#     # fetching existing matchids
-#     query3 = "select match_code, pid from batting_record"
-#     existingmatchdata = list()
-#     curr.execute(query3)
-#     for row in curr.fetchall():
-#         existingmatchdata.append(row)
-#
-#     for index in range(0, len(matchID)):
-#         hundreds = 0
-#         fifties = 0
-#
-#         data = (int(matchID[index]), int(playerID))
-#
-#         if data not in existingmatchdata:
-#
-#             matchrecord = get_total_fs(matchID[index], linkPref, pcntry, playername)
-#
-#             if matchrecord is None:
-#                 print("skipping for match ID: ",matchID[index],"no record found")
-#                 continue
-#
-#             if matchrecord[1]//100 >= 1:
-#                 hundreds += 1
-#
-#             elif matchrecord[1] // 50 == 1:
-#                 fifties += 1
-#
-#             insertquery = "insert into batting_record values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-#
-#             parameters = (int(matchID[index]), int(playerID), vid[index],
-#                           matchrecord[0], matchrecord[1], matchrecord[2],
-#                           matchrecord[3], matchrecord[4], hundreds , fifties)
-#             curr.execute(insertquery, parameters)
-#             # conn.commit()
-#             print("record inserted for match ID: ", matchID[index])
-#
-#         else:
-#             print("skipped record for matchid: ", matchID[index])
+    # retrieving data from internet
+    pdata = pname.getPlayerData(cntry)
 
+    # print(dbplayers)
+    for i in range(0, len(pdata[0])):
+        if int(pdata[0][i]) in dbplayers:
+            print("skipping record ("+pdata[0][i]+", '"+pdata[1][i]+"', "+pdata[2][i]+", "+str(cid)+")")
+            continue
 
-# def insert_player_bowling_record(playerID, playername):
-#     ctx = ssl.create_default_context()
-#     ctx.check_hostname = False
-#     ctx.verify_mode = ssl.CERT_NONE
-#
-#     linkPref = "http://www.howstat.com/cricket/Statistics/Matches/MatchScorecard_ODI.asp?MatchCode="
-#     url = "http://www.howstat.com/cricket/Statistics/Players/PlayerProgressBowl_ODI.asp?PlayerID="+playerID
-#
-#     html = urllib.request.urlopen(url, context=ctx).read()
-#     strainer = SoupStrainer('table', class_="TableLined") #"added"
-#     soup = BeautifulSoup(html, 'html.parser', parse_only=strainer)
-#     # Retrieve all of the anchor tags
-#     # tags = soup('a')
-#
-#     table = soup.find('table', class_="TableLined")
-#
-#     rows = table.find_all('tr')
-#     matchID = list()
-#     vname = list()
-#     vid = list()
-#
-#     for tr in rows[3:]:
-#         columns = tr.find_all('td')
-#
-#         # fetching country id from db
-#         query = "select cid from country_data where cname == \"" + columns[2].text.strip() + "\""
-#         curr.execute(query)
-#         tvid = curr.fetchone()
-#
-#         # if country is in db then only look for records
-#         if tvid is not None:
-#             # print((columns[5].text))
-#
-#             # extracting relative link for match score card
-#             link = columns[1].find('a').get('href').strip()
-#
-#             # extracting and storing the match id's of the relevant matches'
-#             matchID.append(link[-4:])
-#
-#             # storing versus id in vid at same index
-#             vid.append(tvid[0])
-#             vname.append(columns[2].text.strip())
-#
-#     print("innings Played: ", len(matchID))
-#     innings = len(matchID)
-#     # print(matchID)
-#
-#     if innings == 0:
-#         print("no match played")
-#         return
-#
-#     # # fetching country name for player from db
-#     # query2 = "select c.cname from countryData as c join PlayerData as p on c.cid == p.cid WHERE p.pid == "+playerID
-#     # curr.execute(query2)
-#     # pcntry = curr.fetchone()[0]
-#
-#     # fetching existing matchids
-#     query3 = "select match_code, pid from bowling_record"
-#     existingmatchdata = list()
-#     curr.execute(query3)
-#     for row in curr.fetchall():
-#         existingmatchdata.append(row)
-#
-#     for index in range(0, innings):
-#         # hundreds = 0
-#         # fifties = 0
-#
-#         data = (int(matchID[index]), int(playerID))
-#
-#         if data not in existingmatchdata:
-#
-#             matchrecord = get_bowling_data(matchID[index], linkPref, vname[index], playername)
-#
-#             if matchrecord is None:
-#                 print("skipping for match ID: ",matchID[index],"no record found")
-#                 continue
-#
-#             insertquery = "insert into bowling_record values(?, ?, ?, ?, ?, ?, ?)"
-#
-#             parameters = (int(matchID[index]), int(playerID), vid[index],
-#                           matchrecord[0], matchrecord[1], matchrecord[2],
-#                           matchrecord[3])
-#             # print(parameters)
-#             curr.execute(insertquery, parameters)
-#             # conn.commit()
-#             print("{:<3d}".format(index + 1), "- record inserted for match ID: ", matchID[index])
-#
-#         else:
-#             print("{:<3d}".format(index + 1), "-skipped record for matchid: ", matchID[index])
+        else:
+            query = "Insert into player_data(pid, name, yob, cid) values("+pdata[0][i]+", '"+pdata[1][i]+"', "+pdata[2][i]+", "+str(cid)+")"
+            conn.execute(query)
+            print("inserted record ("+pdata[0][i]+", '"+pdata[1][i]+"', "+pdata[2][i]+", "+str(cid)+")")
 
-
-# def player_inserter():
-#     query = "select * from bowler_toinsert where pid > 4266 order by pid"
-#     curr.execute(query)
-#     players = curr.fetchall()
-#
-#     for player in players:
-#         print("--------------------------------------------------------------------------------------------------")
-#         print("                              ", player[1], " - ", player[0], "                                   ")
-#         print("--------------------------------------------------------------------------------------------------")
-#         # insert_player_batting_record(str(player[0]), player[1])
-#         insert_player_bowling_record(str(player[0]), player[1])
-#         conn.commit()
+    conn.commit()
+    # curr.execute("select * from PlayerData")
+    # result = curr.fetchall()
+    # # print(len(result))
+    # for d in result:
+    #     print(d)
 
 
 def insert_series_record(country):
@@ -308,7 +108,7 @@ def insert_series_record(country):
     # Retrieve all of the anchor tags
     # tags = soup('a')
 
-    table = soup.find("table");
+    table = soup.find("table")
 
     rows = table.find_all('tr')
 
@@ -450,6 +250,7 @@ def get_bowlling_rec_row(row):
     wicketstaken = int(columns[4].text.strip())
 
     return [pid, overs, maidenovers, runsgiven, wicketstaken]
+
 
 def get_match_scrorecard(html):
 
