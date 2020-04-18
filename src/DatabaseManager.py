@@ -1,6 +1,5 @@
 import sqlite3
 import src.PlayerName as pname
-# from src.Crawler import get_total_fs, get_bowling_data
 import urllib.request, urllib.parse, urllib.error
 from bs4 import BeautifulSoup, SoupStrainer
 import ssl
