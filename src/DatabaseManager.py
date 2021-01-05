@@ -257,7 +257,7 @@ def get_match_scrorecard(html):
         # url = 'http://www.howstat.com/cricket/Statistics/Matches/MatchScorecard_ODI.asp?MatchCode=' + str(
         # 1069) + '&Print=Y'
         # html = urllib.request.urlopen(url, context=ctx).read()
-        soup = BeautifulSoup(html, 'lxml')
+        soup = BeautifulSoup(html, 'html')
 
     except:
         print("webpage couldn't open")
@@ -389,7 +389,7 @@ def insert_scorecard():
         print(sc[0])
         records = {}
         # records = get_match_scrorecard(sc[1])
-        soup = BeautifulSoup(sc[1], 'lxml')
+        soup = BeautifulSoup(sc[1], 'html')
 
         tab = soup.find_all('table')
         # soup = BeautifulSoup(str(tab[3]), )
@@ -450,15 +450,6 @@ def insert_scorecard():
 insert_scorecard()
 # insert_match_html()
 
-# query = ''' insert into match_html values(?, ?) '''
-#
-#
-#
-#
-# curr.execute(query, para)
-# conn.commit()
-
-# print(curr.fetchone())
 
 
 
